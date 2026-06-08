@@ -6,10 +6,7 @@ module.exports = function layout(title, bodyHtml, { includeNav = false, navType 
     <header class="top-bar">
       <div class="top-bar-inner">
         <a href="/admin" class="top-bar-brand">
-          <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
-            <rect width="40" height="40" rx="8" fill="#0A3E76"/>
-            <path d="M10 28V12h6c4 0 6 2 6 5s-2 5-6 5h-2v6h-4zm4-10h2c1.2 0 2-.7 2-2s-.8-2-2-2h-2v4z" fill="#fff"/>
-          </svg>
+          <img src="/public/digirift-logo-blue.png" alt="DigiRift" style="height:26px;width:auto;">
           <span>DigiVault <small>Admin</small></span>
         </a>
         <nav class="top-bar-nav">
@@ -23,10 +20,7 @@ module.exports = function layout(title, bodyHtml, { includeNav = false, navType 
     <header class="top-bar">
       <div class="top-bar-inner">
         <a href="/" class="top-bar-brand">
-          <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
-            <rect width="40" height="40" rx="8" fill="#0A3E76"/>
-            <path d="M10 28V12h6c4 0 6 2 6 5s-2 5-6 5h-2v6h-4zm4-10h2c1.2 0 2-.7 2-2s-.8-2-2-2h-2v4z" fill="#fff"/>
-          </svg>
+          <img src="/public/digirift-logo-blue.png" alt="DigiRift" style="height:26px;width:auto;">
           <span>DigiVault${clientName ? ` <small>${esc(clientName)}</small>` : ''}</span>
         </a>
         <nav class="top-bar-nav">
@@ -283,6 +277,27 @@ module.exports = function layout(title, bodyHtml, { includeNav = false, navType 
     .fade-in { animation: fadeIn 0.5s ease-out; }
     .slide-in { animation: slideIn 0.5s ease-out; }
 
+    /* Powered-by footer */
+    .powered-footer {
+      text-align: center;
+      padding: 2rem 1rem 1.5rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+    .powered-footer a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .powered-footer a:hover { text-decoration: underline; }
+    .powered-footer img {
+      height: 16px;
+      width: auto;
+      vertical-align: middle;
+      margin-right: 0.25rem;
+      opacity: 0.6;
+    }
+
     @media (max-width: 768px) {
       .container { padding: 1rem; }
       .top-bar-inner { padding: 0 1rem; }
@@ -292,6 +307,12 @@ module.exports = function layout(title, bodyHtml, { includeNav = false, navType 
 <body>
 ${navHtml}
 ${bodyHtml}
+${includeNav && navType === 'client' ? `
+<footer class="powered-footer">
+  <img src="/public/digirift-logo-blue.png" alt="DigiRift"> Powered by <a href="https://digirift.com" target="_blank" rel="noopener">DigiRift GmbH</a>
+  &nbsp;&middot;&nbsp;
+  <a href="https://inquiry.digirift.com" target="_blank" rel="noopener">Eigenes Portal anfragen</a>
+</footer>` : ''}
 </body>
 </html>`;
 };

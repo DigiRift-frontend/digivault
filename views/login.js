@@ -61,16 +61,11 @@ module.exports = function loginPage(error = '') {
     .login-left-logo {
       position: relative;
       z-index: 1;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
       animation: fadeIn 0.6s ease-out;
     }
-    .login-left-logo svg { flex-shrink: 0; }
-    .login-left-logo span {
-      font-family: 'Poppins', sans-serif;
-      font-weight: 700;
-      font-size: 1.3rem;
+    .login-left-logo img {
+      height: 32px;
+      width: auto;
     }
 
     .login-left-content {
@@ -126,6 +121,41 @@ module.exports = function loginPage(error = '') {
       font-size: 0.8rem;
       opacity: 0.5;
       animation: fadeIn 0.8s ease-out;
+    }
+
+    /* CTA Banner */
+    .cta-banner {
+      position: relative;
+      z-index: 1;
+      margin-top: 2.5rem;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      animation: fadeIn 1s ease-out;
+      backdrop-filter: blur(8px);
+    }
+    .cta-banner p {
+      font-size: 0.95rem;
+      opacity: 0.9;
+      margin-bottom: 0.75rem;
+      line-height: 1.5;
+    }
+    .cta-banner .cta-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      text-decoration: none;
+      padding: 0.5rem 1.1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .cta-banner .cta-link:hover {
+      background: rgba(255,255,255,0.25);
     }
 
     /* Right panel - 40% */
@@ -248,11 +278,7 @@ module.exports = function loginPage(error = '') {
     <div class="deco-circle deco-circle-2"></div>
 
     <div class="login-left-logo">
-      <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
-        <rect width="40" height="40" rx="8" fill="rgba(255,255,255,0.15)"/>
-        <path d="M10 28V12h6c4 0 6 2 6 5s-2 5-6 5h-2v6h-4zm4-10h2c1.2 0 2-.7 2-2s-.8-2-2-2h-2v4z" fill="#fff"/>
-      </svg>
-      <span>DigiVault</span>
+      <img src="/public/digirift-logo-white.png" alt="DigiRift">
     </div>
 
     <div class="login-left-content">
@@ -278,6 +304,14 @@ module.exports = function loginPage(error = '') {
           Individuelle Zugangsdaten
         </li>
       </ul>
+
+      <div class="cta-banner">
+        <p>Gef&auml;llt Ihnen dieses Portal? Wir entwickeln individuelle Softwarelösungen f&uuml;r Ihr Unternehmen.</p>
+        <a href="https://inquiry.digirift.com" target="_blank" rel="noopener" class="cta-link">
+          Jetzt unverbindlich anfragen
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+        </a>
+      </div>
     </div>
 
     <div class="login-left-footer">

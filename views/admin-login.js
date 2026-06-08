@@ -58,15 +58,11 @@ module.exports = function adminLoginPage(error = '') {
     .login-left-logo {
       position: relative;
       z-index: 1;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
       animation: fadeIn 0.6s ease-out;
     }
-    .login-left-logo span {
-      font-family: 'Poppins', sans-serif;
-      font-weight: 700;
-      font-size: 1.3rem;
+    .login-left-logo img {
+      height: 32px;
+      width: auto;
     }
     .login-left-content {
       flex: 1;
@@ -251,11 +247,7 @@ module.exports = function adminLoginPage(error = '') {
     <div class="deco-circle deco-circle-2"></div>
 
     <div class="login-left-logo">
-      <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
-        <rect width="40" height="40" rx="8" fill="rgba(255,255,255,0.15)"/>
-        <path d="M10 28V12h6c4 0 6 2 6 5s-2 5-6 5h-2v6h-4zm4-10h2c1.2 0 2-.7 2-2s-.8-2-2-2h-2v4z" fill="#fff"/>
-      </svg>
-      <span>DigiVault</span>
+      <img src="/public/digirift-logo-white.png" alt="DigiRift">
     </div>
 
     <div class="login-left-content">
