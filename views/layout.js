@@ -310,7 +310,7 @@ ${bodyHtml}
 <footer class="powered-footer">
   <img src="/public/digirift-logo-blue.png" alt="DigiRift"> Powered by <a href="https://digirift.com" target="_blank" rel="noopener">DigiRift GmbH</a>
   &nbsp;&middot;&nbsp;
-  <a href="mailto:kamil@digirift.com">kamil@digirift.com</a>
+  <a href="https://digirift.de" target="_blank" rel="noopener">digirift.de</a>
 </footer>
 </body>
 </html>`;

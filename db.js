@@ -28,6 +28,7 @@ db.exec(`
     slug TEXT UNIQUE NOT NULL,
     username TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
+    password_plain TEXT,
     created_at TEXT DEFAULT (datetime('now'))
   );
 
@@ -38,6 +39,7 @@ db.exec(`
     filename TEXT NOT NULL,
     original_name TEXT,
     description TEXT,
+    is_new INTEGER NOT NULL DEFAULT 1,
     created_at TEXT DEFAULT (datetime('now'))
   );
 
@@ -48,6 +50,11 @@ db.exec(`
     created_at TEXT DEFAULT (datetime('now'))
   );
 `);
+
+// --- Safe column additions for existing databases ---
+
+try { db.exec('ALTER TABLE files ADD COLUMN is_new INTEGER NOT NULL DEFAULT 1'); } catch {}
+try { db.exec('ALTER TABLE clients ADD COLUMN password_plain TEXT'); } catch {}
 
 // --- Seed admin account ---
 
@@ -97,10 +104,10 @@ module.exports = {
     return db.prepare('SELECT * FROM clients WHERE username = ?').get(username);
   },
 
-  createClient(name, slug, username, passwordHash) {
+  createClient(name, slug, username, passwordHash, passwordPlain) {
     return db.prepare(
-      'INSERT INTO clients (name, slug, username, password_hash) VALUES (?, ?, ?, ?)'
-    ).run(name, slug, username, passwordHash);
+      'INSERT INTO clients (name, slug, username, password_hash, password_plain) VALUES (?, ?, ?, ?, ?)'
+    ).run(name, slug, username, passwordHash, passwordPlain);
   },
 
   deleteClient(id) {
@@ -113,7 +120,7 @@ module.exports = {
 
   // Files
   getFilesByClientId(clientId) {
-    return db.prepare('SELECT * FROM files WHERE client_id = ? ORDER BY created_at DESC').all(clientId);
+    return db.prepare('SELECT * FROM files WHERE client_id = ? ORDER BY is_new DESC, created_at DESC').all(clientId);
   },
 
   getFileById(id) {
@@ -122,8 +129,16 @@ module.exports = {
 
   createFile(clientId, title, filename, originalName, description) {
     return db.prepare(
-      'INSERT INTO files (client_id, title, filename, original_name, description) VALUES (?, ?, ?, ?, ?)'
+      'INSERT INTO files (client_id, title, filename, original_name, description, is_new) VALUES (?, ?, ?, ?, ?, 1)'
     ).run(clientId, title, filename, originalName, description);
+  },
+
+  markFileRead(id) {
+    return db.prepare('UPDATE files SET is_new = 0 WHERE id = ?').run(id);
+  },
+
+  markFileUnread(id) {
+    return db.prepare('UPDATE files SET is_new = 1 WHERE id = ?').run(id);
   },
 
   deleteFile(id) {

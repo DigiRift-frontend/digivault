@@ -7,11 +7,15 @@ module.exports = function adminClientPage({ client, files, message = '', error =
 
   const fileRows = files.map(f => `
     <tr>
-      <td><strong>${esc(f.title)}</strong></td>
-      <td>${esc(f.original_name || f.filename)}</td>
-      <td>${esc(f.description || '–')}</td>
-      <td>${esc(f.created_at)}</td>
       <td>
+        <strong>${esc(f.title)}</strong>
+        ${f.is_new ? '<span style="display:inline-block;background:#0A3E76;color:#fff;font-size:0.65rem;font-weight:700;padding:0.1rem 0.4rem;border-radius:3px;margin-left:0.4rem;vertical-align:middle;text-transform:uppercase;">Neu</span>' : ''}
+      </td>
+      <td>${esc(f.original_name || f.filename)}</td>
+      <td>${esc(f.description || '\u2013')}</td>
+      <td>${esc(f.created_at)}</td>
+      <td style="white-space:nowrap;">
+        <a href="/admin/view/${f.id}" class="btn btn-primary btn-sm" style="margin-right:0.25rem;">&Ouml;ffnen</a>
         <form method="POST" action="/admin/files/${f.id}/delete" style="display:inline;" onsubmit="return confirm('Datei wirklich l&ouml;schen?')">
           <button type="submit" class="btn btn-danger btn-sm">L&ouml;schen</button>
         </form>
@@ -20,6 +24,41 @@ module.exports = function adminClientPage({ client, files, message = '', error =
   `).join('');
 
   const body = `
+  <style>
+    .credentials-card {
+      background: #FAFBFF;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .credentials-card .cred-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+    .credentials-card .cred-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: var(--text-secondary);
+    }
+    .credentials-card .cred-value {
+      font-size: 0.9rem;
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.25rem 0.5rem;
+    }
+  </style>
+
   <div class="container fade-in">
     ${messageHtml}
     ${errorHtml}
@@ -28,16 +67,27 @@ module.exports = function adminClientPage({ client, files, message = '', error =
       <a href="/admin" style="color:var(--accent); text-decoration:none; font-size:0.9rem;">&larr; Zur&uuml;ck zum Dashboard</a>
     </div>
 
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
       <div>
         <h1 style="font-size:1.6rem; color:var(--primary);">${esc(client.name)}</h1>
         <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:0.25rem;">
-          Slug: <code>${esc(client.slug)}</code> &middot; Benutzername: <code>${esc(client.username)}</code>
+          Slug: <code>${esc(client.slug)}</code>
         </p>
       </div>
       <form method="POST" action="/admin/clients/${client.id}/delete" onsubmit="return confirm('Kunden und alle Dateien wirklich l&ouml;schen?')">
         <button type="submit" class="btn btn-danger">Kunden l&ouml;schen</button>
       </form>
+    </div>
+
+    <div class="credentials-card">
+      <div class="cred-item">
+        <span class="cred-label">Benutzername</span>
+        <span class="cred-value">${esc(client.username)}</span>
+      </div>
+      <div class="cred-item">
+        <span class="cred-label">Passwort</span>
+        <span class="cred-value">${client.password_plain ? esc(client.password_plain) : '<em style="color:var(--text-secondary);font-style:italic;">nicht gespeichert</em>'}</span>
+      </div>
     </div>
 
     <div class="card" style="margin-bottom:2rem;">

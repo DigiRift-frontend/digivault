@@ -1,6 +1,9 @@
 const { esc } = require('./layout');
 
-module.exports = function clientViewerPage({ file, client }) {
+module.exports = function clientViewerPage({ file, client, backUrl = '/' }) {
+  const isAdmin = backUrl.startsWith('/admin');
+  const rawUrl = isAdmin ? `/admin/raw/${file.id}` : `/raw/${file.id}`;
+
   return `<!DOCTYPE html>
 <html lang="de">
 <head>
@@ -61,14 +64,14 @@ module.exports = function clientViewerPage({ file, client }) {
 </head>
 <body>
   <div class="viewer-bar">
-    <a href="/" class="viewer-back">
+    <a href="${esc(backUrl)}" class="viewer-back">
       <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
       Zur&uuml;ck
     </a>
     <span class="viewer-title">${esc(file.title)}</span>
     <span class="viewer-meta">${esc(client.name)}</span>
   </div>
-  <iframe src="/raw/${file.id}" title="${esc(file.title)}"></iframe>
+  <iframe src="${rawUrl}" title="${esc(file.title)}"></iframe>
 </body>
 </html>`;
 };

@@ -121,7 +121,23 @@ app.get('/view/:fileId', requireClient, (req, res) => {
   const file = db.getFileById(req.params.fileId);
   if (!file || file.client_id !== req.session.clientId) return res.status(404).send('Nicht gefunden');
   const client = db.getClientById(req.session.clientId);
+  // Auto-mark as read when opened
+  if (file.is_new) db.markFileRead(file.id);
   res.send(clientViewerPage({ file, client }));
+});
+
+app.post('/files/:fileId/mark-unread', requireClient, (req, res) => {
+  const file = db.getFileById(req.params.fileId);
+  if (!file || file.client_id !== req.session.clientId) return res.status(404).send('Nicht gefunden');
+  db.markFileUnread(file.id);
+  res.redirect('/');
+});
+
+app.post('/files/:fileId/mark-read', requireClient, (req, res) => {
+  const file = db.getFileById(req.params.fileId);
+  if (!file || file.client_id !== req.session.clientId) return res.status(404).send('Nicht gefunden');
+  db.markFileRead(file.id);
+  res.redirect('/');
 });
 
 app.get('/raw/:fileId', requireClient, (req, res) => {
@@ -181,7 +197,7 @@ app.post('/admin/clients', requireAdmin, (req, res) => {
   }
   try {
     const hash = bcrypt.hashSync(password, 10);
-    db.createClient(name, slug, username, hash);
+    db.createClient(name, slug, username, hash, password);
     res.redirect('/admin?msg=Kunde erfolgreich angelegt');
   } catch (err) {
     res.redirect(`/admin?err=${encodeURIComponent(err.message)}`);
@@ -198,6 +214,22 @@ app.get('/admin/clients/:id', requireAdmin, (req, res) => {
     message: req.query.msg || '',
     error: req.query.err || '',
   }));
+});
+
+app.get('/admin/view/:fileId', requireAdmin, (req, res) => {
+  const file = db.getFileById(req.params.fileId);
+  if (!file) return res.status(404).send('Nicht gefunden');
+  const client = db.getClientById(file.client_id);
+  res.send(clientViewerPage({ file, client, backUrl: `/admin/clients/${client.id}` }));
+});
+
+app.get('/admin/raw/:fileId', requireAdmin, (req, res) => {
+  const file = db.getFileById(req.params.fileId);
+  if (!file) return res.status(404).send('Nicht gefunden');
+  const client = db.getClientById(file.client_id);
+  const filePath = path.join(UPLOADS_DIR, client.slug, file.filename);
+  if (!fs.existsSync(filePath)) return res.status(404).send('Datei nicht gefunden');
+  res.sendFile(filePath);
 });
 
 app.post('/admin/clients/:id/delete', requireAdmin, (req, res) => {
@@ -273,7 +305,7 @@ app.post('/api/clients', requireApiToken, (req, res) => {
   }
   try {
     const hash = bcrypt.hashSync(password, 10);
-    const result = db.createClient(name, slug, username, hash);
+    const result = db.createClient(name, slug, username, hash, password);
     const client = db.getClientById(result.lastInsertRowid);
     res.status(201).json({ client: { id: client.id, name: client.name, slug: client.slug, username: client.username } });
   } catch (err) {

@@ -11,7 +11,8 @@ module.exports = function adminDashboardPage({ clients, clientCount, fileCount, 
       <tr>
         <td><strong>${esc(c.name)}</strong></td>
         <td><code>${esc(c.slug)}</code></td>
-        <td>${esc(c.username)}</td>
+        <td><code>${esc(c.username)}</code></td>
+        <td><code>${c.password_plain ? esc(c.password_plain) : '\u2013'}</code></td>
         <td>${fileCountForClient} Datei${fileCountForClient !== 1 ? 'en' : ''}</td>
         <td>${esc(c.created_at)}</td>
         <td>
@@ -60,7 +61,7 @@ module.exports = function adminDashboardPage({ clients, clientCount, fileCount, 
         </div>
         <div class="form-group" style="margin-bottom:0;">
           <label>Passwort</label>
-          <input type="password" name="password" required placeholder="Login-Passwort">
+          <input type="text" name="password" required placeholder="Login-Passwort" autocomplete="off">
         </div>
         <button type="submit" class="btn btn-primary" style="height:40px;">Anlegen</button>
       </form>
@@ -77,6 +78,7 @@ module.exports = function adminDashboardPage({ clients, clientCount, fileCount, 
                   <th>Name</th>
                   <th>Slug</th>
                   <th>Benutzername</th>
+                  <th>Passwort</th>
                   <th>Dateien</th>
                   <th>Erstellt</th>
                   <th></th>
