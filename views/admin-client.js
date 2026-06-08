@@ -1,7 +1,7 @@
 const layout = require('./layout');
 const { esc } = layout;
 
-module.exports = function adminClientPage({ client, files, message = '', error = '' }) {
+module.exports = function adminClientPage({ client, files, message = '', error = '', csrfToken = '' }) {
   const messageHtml = message ? `<div class="alert alert-success">${esc(message)}</div>` : '';
   const errorHtml = error ? `<div class="alert alert-error">${esc(error)}</div>` : '';
 
@@ -17,6 +17,7 @@ module.exports = function adminClientPage({ client, files, message = '', error =
       <td style="white-space:nowrap;">
         <a href="/admin/view/${f.id}" class="btn btn-primary btn-sm" style="margin-right:0.25rem;">&Ouml;ffnen</a>
         <form method="POST" action="/admin/files/${f.id}/delete" style="display:inline;" onsubmit="return confirm('Datei wirklich l&ouml;schen?')">
+          <input type="hidden" name="_csrf" value="${csrfToken}">
           <button type="submit" class="btn btn-danger btn-sm">L&ouml;schen</button>
         </form>
       </td>
@@ -75,6 +76,7 @@ module.exports = function adminClientPage({ client, files, message = '', error =
         </p>
       </div>
       <form method="POST" action="/admin/clients/${client.id}/delete" onsubmit="return confirm('Kunden und alle Dateien wirklich l&ouml;schen?')">
+        <input type="hidden" name="_csrf" value="${csrfToken}">
         <button type="submit" class="btn btn-danger">Kunden l&ouml;schen</button>
       </form>
     </div>
@@ -84,15 +86,12 @@ module.exports = function adminClientPage({ client, files, message = '', error =
         <span class="cred-label">Benutzername</span>
         <span class="cred-value">${esc(client.username)}</span>
       </div>
-      <div class="cred-item">
-        <span class="cred-label">Passwort</span>
-        <span class="cred-value">${client.password_plain ? esc(client.password_plain) : '<em style="color:var(--text-secondary);font-style:italic;">nicht gespeichert</em>'}</span>
-      </div>
     </div>
 
     <div class="card" style="margin-bottom:2rem;">
       <h3 style="margin-bottom:1rem; font-size:1.1rem;">HTML-Datei hochladen</h3>
       <form method="POST" action="/admin/clients/${client.id}/upload" enctype="multipart/form-data" style="display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:0.75rem; align-items:end;">
+        <input type="hidden" name="_csrf" value="${csrfToken}">
         <div class="form-group" style="margin-bottom:0;">
           <label>Titel</label>
           <input type="text" name="title" required placeholder="Anzeige-Titel">

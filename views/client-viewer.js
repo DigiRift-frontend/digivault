@@ -71,7 +71,7 @@ module.exports = function clientViewerPage({ file, client, backUrl = '/' }) {
     <span class="viewer-title">${esc(file.title)}</span>
     <span class="viewer-meta">${esc(client.name)}</span>
   </div>
-  <iframe src="${rawUrl}" title="${esc(file.title)}"></iframe>
+  <iframe src="${rawUrl}" title="${esc(file.title)}" sandbox="allow-same-origin" referrerpolicy="no-referrer"></iframe>
 </body>
 </html>`;
 };

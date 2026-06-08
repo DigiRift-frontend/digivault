@@ -1,6 +1,6 @@
 const { esc } = require('./layout');
 
-module.exports = function adminLoginPage(error = '') {
+module.exports = function adminLoginPage(error = '', csrfToken = '') {
   const errorHtml = error ? `<div class="login-alert">${esc(error)}</div>` : '';
 
   return `<!DOCTYPE html>
@@ -320,6 +320,7 @@ module.exports = function adminLoginPage(error = '') {
       <p class="subtitle">Melden Sie sich mit Ihren Admin-Zugangsdaten an.</p>
       ${errorHtml}
       <form method="POST" action="/admin/login">
+        <input type="hidden" name="_csrf" value="${csrfToken}">
         <div class="form-group">
           <label>E-Mail</label>
           <input type="email" name="email" required autocomplete="email" autofocus placeholder="admin@digirift.de">

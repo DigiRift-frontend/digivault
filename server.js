@@ -6,6 +6,8 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 const db = require('./db');
 
@@ -26,6 +28,29 @@ if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 // --- Middleware ---
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:"],
+      frameSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+    },
+  },
+}));
+
+if (isProduction) {
+  app.set('trust proxy', 1);
+  if (!process.env.SESSION_SECRET) {
+    console.error('[DigiVault] FATAL: SESSION_SECRET environment variable is required in production.');
+    process.exit(1);
+  }
+}
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json({ limit: '50mb' }));
 app.use('/public', express.static(path.join(__dirname, 'public')));
@@ -35,8 +60,46 @@ app.use(session({
   secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 } // 7 days
+  cookie: {
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'lax',
+  },
 }));
+
+// --- CSRF Protection ---
+
+function generateCsrfToken(req) {
+  if (!req.session.csrfToken) {
+    req.session.csrfToken = crypto.randomBytes(32).toString('hex');
+  }
+  return req.session.csrfToken;
+}
+
+function verifyCsrf(req, res, next) {
+  const token = req.body._csrf || req.headers['x-csrf-token'];
+  if (!token || token !== req.session.csrfToken) {
+    return res.status(403).send('Ungültige Anfrage (CSRF).');
+  }
+  next();
+}
+
+// Make CSRF token available to all views
+app.use((req, res, next) => {
+  res.locals.csrfToken = generateCsrfToken(req);
+  next();
+});
+
+// --- Rate Limiting ---
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // 10 attempts per window
+  message: 'Zu viele Login-Versuche. Bitte versuchen Sie es später erneut.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Multer setup for file uploads
 const upload = multer({
@@ -93,15 +156,16 @@ function requireApiToken(req, res, next) {
 
 app.get('/login', (req, res) => {
   if (req.session && req.session.clientId) return res.redirect('/');
-  res.send(loginPage(req.query.error === '1' ? 'Benutzername oder Passwort falsch.' : ''));
+  res.send(loginPage(req.query.error === '1' ? 'Benutzername oder Passwort falsch.' : '', res.locals.csrfToken));
 });
 
-app.post('/login', (req, res) => {
+app.post('/login', loginLimiter, verifyCsrf, (req, res) => {
   const { username, password } = req.body;
   const client = db.getClientByUsername(username);
   if (!client || !bcrypt.compareSync(password, client.password_hash)) {
     return res.redirect('/login?error=1');
   }
+  req.session.csrfToken = crypto.randomBytes(32).toString('hex');
   req.session.clientId = client.id;
   res.redirect('/');
 });
@@ -114,7 +178,7 @@ app.get('/', requireClient, (req, res) => {
   const client = db.getClientById(req.session.clientId);
   if (!client) return req.session.destroy(() => res.redirect('/login'));
   const files = db.getFilesByClientId(client.id);
-  res.send(clientDashboardPage({ client, files }));
+  res.send(clientDashboardPage({ client, files, csrfToken: res.locals.csrfToken }));
 });
 
 app.get('/view/:fileId', requireClient, (req, res) => {
@@ -126,14 +190,14 @@ app.get('/view/:fileId', requireClient, (req, res) => {
   res.send(clientViewerPage({ file, client }));
 });
 
-app.post('/files/:fileId/mark-unread', requireClient, (req, res) => {
+app.post('/files/:fileId/mark-unread', requireClient, verifyCsrf, (req, res) => {
   const file = db.getFileById(req.params.fileId);
   if (!file || file.client_id !== req.session.clientId) return res.status(404).send('Nicht gefunden');
   db.markFileUnread(file.id);
   res.redirect('/');
 });
 
-app.post('/files/:fileId/mark-read', requireClient, (req, res) => {
+app.post('/files/:fileId/mark-read', requireClient, verifyCsrf, (req, res) => {
   const file = db.getFileById(req.params.fileId);
   if (!file || file.client_id !== req.session.clientId) return res.status(404).send('Nicht gefunden');
   db.markFileRead(file.id);
@@ -155,15 +219,16 @@ app.get('/raw/:fileId', requireClient, (req, res) => {
 
 app.get('/admin/login', (req, res) => {
   if (req.session && req.session.isAdmin) return res.redirect('/admin');
-  res.send(adminLoginPage(req.query.error === '1' ? 'E-Mail oder Passwort falsch.' : ''));
+  res.send(adminLoginPage(req.query.error === '1' ? 'E-Mail oder Passwort falsch.' : '', res.locals.csrfToken));
 });
 
-app.post('/admin/login', (req, res) => {
+app.post('/admin/login', loginLimiter, verifyCsrf, (req, res) => {
   const { email, password } = req.body;
   const admin = db.getAdmin(email);
   if (!admin || !bcrypt.compareSync(password, admin.password_hash)) {
     return res.redirect('/admin/login?error=1');
   }
+  req.session.csrfToken = crypto.randomBytes(32).toString('hex');
   req.session.isAdmin = true;
   res.redirect('/admin');
 });
@@ -187,17 +252,21 @@ app.get('/admin', requireAdmin, (req, res) => {
     fileCount,
     message: req.query.msg || '',
     error: req.query.err || '',
+    csrfToken: res.locals.csrfToken,
   }));
 });
 
-app.post('/admin/clients', requireAdmin, (req, res) => {
+app.post('/admin/clients', requireAdmin, verifyCsrf, (req, res) => {
   const { name, slug, username, password } = req.body;
   if (!name || !slug || !username || !password) {
     return res.redirect('/admin?err=Alle Felder sind erforderlich');
   }
+  if (!/^[a-z0-9-]+$/.test(slug)) {
+    return res.redirect('/admin?err=Slug darf nur Kleinbuchstaben, Zahlen und Bindestriche enthalten');
+  }
   try {
     const hash = bcrypt.hashSync(password, 10);
-    db.createClient(name, slug, username, hash, password);
+    db.createClient(name, slug, username, hash);
     res.redirect('/admin?msg=Kunde erfolgreich angelegt');
   } catch (err) {
     res.redirect(`/admin?err=${encodeURIComponent(err.message)}`);
@@ -213,6 +282,7 @@ app.get('/admin/clients/:id', requireAdmin, (req, res) => {
     files,
     message: req.query.msg || '',
     error: req.query.err || '',
+    csrfToken: res.locals.csrfToken,
   }));
 });
 
@@ -232,7 +302,7 @@ app.get('/admin/raw/:fileId', requireAdmin, (req, res) => {
   res.sendFile(filePath);
 });
 
-app.post('/admin/clients/:id/delete', requireAdmin, (req, res) => {
+app.post('/admin/clients/:id/delete', requireAdmin, verifyCsrf, (req, res) => {
   const client = db.getClientById(req.params.id);
   if (!client) return res.redirect('/admin?err=Kunde nicht gefunden');
   // Delete files on disk
@@ -252,6 +322,11 @@ app.post('/admin/clients/:id/upload', requireAdmin, (req, res) => {
     if (err) {
       return res.redirect(`/admin/clients/${req.params.id}?err=${encodeURIComponent(err.message)}`);
     }
+    // Verify CSRF after multer has parsed the multipart body
+    const csrfToken = req.body._csrf;
+    if (!csrfToken || csrfToken !== req.session.csrfToken) {
+      return res.status(403).send('Ungültige Anfrage (CSRF).');
+    }
     if (!req.file) {
       return res.redirect(`/admin/clients/${req.params.id}?err=Keine Datei ausgewählt`);
     }
@@ -267,7 +342,7 @@ app.post('/admin/clients/:id/upload', requireAdmin, (req, res) => {
   });
 });
 
-app.post('/admin/files/:id/delete', requireAdmin, (req, res) => {
+app.post('/admin/files/:id/delete', requireAdmin, verifyCsrf, (req, res) => {
   const file = db.getFileById(req.params.id);
   if (!file) return res.redirect('/admin?err=Datei nicht gefunden');
   const client = db.getClientById(file.client_id);
@@ -303,9 +378,12 @@ app.post('/api/clients', requireApiToken, (req, res) => {
   if (!name || !slug || !username || !password) {
     return res.status(400).json({ error: 'name, slug, username, and password are required' });
   }
+  if (!/^[a-z0-9-]+$/.test(slug)) {
+    return res.status(400).json({ error: 'slug must only contain lowercase letters, numbers, and hyphens' });
+  }
   try {
     const hash = bcrypt.hashSync(password, 10);
-    const result = db.createClient(name, slug, username, hash, password);
+    const result = db.createClient(name, slug, username, hash);
     const client = db.getClientById(result.lastInsertRowid);
     res.status(201).json({ client: { id: client.id, name: client.name, slug: client.slug, username: client.username } });
   } catch (err) {

@@ -1,7 +1,7 @@
 const layout = require('./layout');
 const { esc } = layout;
 
-module.exports = function adminDashboardPage({ clients, clientCount, fileCount, message = '', error = '' }) {
+module.exports = function adminDashboardPage({ clients, clientCount, fileCount, message = '', error = '', csrfToken = '' }) {
   const messageHtml = message ? `<div class="alert alert-success">${esc(message)}</div>` : '';
   const errorHtml = error ? `<div class="alert alert-error">${esc(error)}</div>` : '';
 
@@ -12,7 +12,6 @@ module.exports = function adminDashboardPage({ clients, clientCount, fileCount, 
         <td><strong>${esc(c.name)}</strong></td>
         <td><code>${esc(c.slug)}</code></td>
         <td><code>${esc(c.username)}</code></td>
-        <td><code>${c.password_plain ? esc(c.password_plain) : '\u2013'}</code></td>
         <td>${fileCountForClient} Datei${fileCountForClient !== 1 ? 'en' : ''}</td>
         <td>${esc(c.created_at)}</td>
         <td>
@@ -47,6 +46,7 @@ module.exports = function adminDashboardPage({ clients, clientCount, fileCount, 
     <div class="card" style="margin-bottom:2rem;">
       <h3 style="margin-bottom:1rem; font-size:1.1rem;">Neuen Kunden anlegen</h3>
       <form method="POST" action="/admin/clients" style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr auto; gap:0.75rem; align-items:end;">
+        <input type="hidden" name="_csrf" value="${csrfToken}">
         <div class="form-group" style="margin-bottom:0;">
           <label>Name</label>
           <input type="text" name="name" required placeholder="z.B. UK Aachen">
@@ -78,7 +78,6 @@ module.exports = function adminDashboardPage({ clients, clientCount, fileCount, 
                   <th>Name</th>
                   <th>Slug</th>
                   <th>Benutzername</th>
-                  <th>Passwort</th>
                   <th>Dateien</th>
                   <th>Erstellt</th>
                   <th></th>

@@ -1,6 +1,6 @@
 const { esc } = require('./layout');
 
-module.exports = function loginPage(error = '') {
+module.exports = function loginPage(error = '', csrfToken = '') {
   const errorHtml = error ? `<div class="login-alert">${esc(error)}</div>` : '';
 
   return `<!DOCTYPE html>
@@ -358,6 +358,7 @@ module.exports = function loginPage(error = '') {
       <p class="subtitle">Melden Sie sich an, um Ihre Dokumente einzusehen.</p>
       ${errorHtml}
       <form method="POST" action="/login">
+        <input type="hidden" name="_csrf" value="${csrfToken}">
         <div class="form-group">
           <label>Benutzername</label>
           <input type="text" name="username" required autocomplete="username" autofocus placeholder="Ihr Benutzername">

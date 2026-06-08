@@ -15,6 +15,8 @@ VOLUME ["/app/data", "/app/uploads"]
 
 ENV NODE_ENV=production
 ENV PORT=3000
+# ADMIN_PASSWORD and SESSION_SECRET must be provided at runtime
+# e.g. docker run -e ADMIN_PASSWORD=... -e SESSION_SECRET=...
 
 EXPOSE 3000
 

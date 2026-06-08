@@ -54,12 +54,21 @@ db.exec(`
 // --- Safe column additions for existing databases ---
 
 try { db.exec('ALTER TABLE files ADD COLUMN is_new INTEGER NOT NULL DEFAULT 1'); } catch {}
-try { db.exec('ALTER TABLE clients ADD COLUMN password_plain TEXT'); } catch {}
+
+// --- Remove plaintext passwords from existing databases ---
+try {
+  db.exec('UPDATE clients SET password_plain = NULL WHERE password_plain IS NOT NULL');
+} catch {}
 
 // --- Seed admin account ---
 
 const adminEmail = 'admin@digirift.de';
-const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+const adminPassword = process.env.ADMIN_PASSWORD;
+
+if (!adminPassword) {
+  console.error('[DigiVault] FATAL: ADMIN_PASSWORD environment variable is required.');
+  process.exit(1);
+}
 
 const existingAdmin = db.prepare('SELECT id FROM admin WHERE email = ?').get(adminEmail);
 if (!existingAdmin) {
@@ -74,7 +83,7 @@ const existingToken = db.prepare('SELECT id FROM api_tokens LIMIT 1').get();
 if (!existingToken) {
   const token = crypto.randomBytes(32).toString('hex');
   db.prepare('INSERT INTO api_tokens (token, label) VALUES (?, ?)').run(token, 'Initial Token');
-  console.log(`[DigiVault] Initial API token: ${token}`);
+  console.log('[DigiVault] Initial API token created. Retrieve it via admin panel or database.');
 }
 
 // --- Query helpers ---
@@ -104,10 +113,10 @@ module.exports = {
     return db.prepare('SELECT * FROM clients WHERE username = ?').get(username);
   },
 
-  createClient(name, slug, username, passwordHash, passwordPlain) {
+  createClient(name, slug, username, passwordHash) {
     return db.prepare(
-      'INSERT INTO clients (name, slug, username, password_hash, password_plain) VALUES (?, ?, ?, ?, ?)'
-    ).run(name, slug, username, passwordHash, passwordPlain);
+      'INSERT INTO clients (name, slug, username, password_hash) VALUES (?, ?, ?, ?)'
+    ).run(name, slug, username, passwordHash);
   },
 
   deleteClient(id) {

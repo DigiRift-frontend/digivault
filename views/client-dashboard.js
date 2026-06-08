@@ -1,7 +1,7 @@
 const layout = require('./layout');
 const { esc } = layout;
 
-module.exports = function clientDashboardPage({ client, files }) {
+module.exports = function clientDashboardPage({ client, files, csrfToken = '' }) {
   const newFiles = files.filter(f => f.is_new);
   const readFiles = files.filter(f => !f.is_new);
 
@@ -23,10 +23,10 @@ module.exports = function clientDashboardPage({ client, files }) {
       </a>
       <div class="doc-card-actions">
         ${f.is_new
-          ? `<form method="POST" action="/files/${f.id}/mark-read"><button type="submit" class="mark-btn" title="Als gelesen markieren">
+          ? `<form method="POST" action="/files/${f.id}/mark-read"><input type="hidden" name="_csrf" value="${csrfToken}"><button type="submit" class="mark-btn" title="Als gelesen markieren">
               <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
               Als gelesen markieren</button></form>`
-          : `<form method="POST" action="/files/${f.id}/mark-unread"><button type="submit" class="mark-btn" title="Als ungelesen markieren">
+          : `<form method="POST" action="/files/${f.id}/mark-unread"><input type="hidden" name="_csrf" value="${csrfToken}"><button type="submit" class="mark-btn" title="Als ungelesen markieren">
               <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/></svg>
               Als ungelesen markieren</button></form>`
         }
