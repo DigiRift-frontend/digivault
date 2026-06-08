@@ -70,6 +70,10 @@ if (!adminPassword) {
   process.exit(1);
 }
 
+console.log(`[DigiVault] Admin email: ${adminEmail}`);
+console.log(`[DigiVault] Admin password length: ${adminPassword.length}`);
+console.log(`[DigiVault] Admin password first 4 chars: ${adminPassword.substring(0, 4)}`);
+
 const adminHash = bcrypt.hashSync(adminPassword, 10);
 const existingAdmin = db.prepare('SELECT id FROM admin WHERE email = ?').get(adminEmail);
 if (!existingAdmin) {
@@ -78,6 +82,7 @@ if (!existingAdmin) {
 } else {
   // Always update password from env var so changes take effect after redeploy
   db.prepare('UPDATE admin SET password_hash = ? WHERE email = ?').run(adminHash, adminEmail);
+  console.log(`[DigiVault] Admin password updated for: ${adminEmail}`);
 }
 
 // --- Seed initial API token ---

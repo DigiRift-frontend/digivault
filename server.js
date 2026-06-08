@@ -225,6 +225,10 @@ app.get('/admin/login', (req, res) => {
 app.post('/admin/login', loginLimiter, verifyCsrf, (req, res) => {
   const { email, password } = req.body;
   const admin = db.getAdmin(email);
+  console.log(`[DigiVault] Admin login attempt: email="${email}", admin_found=${!!admin}, password_length=${password ? password.length : 0}`);
+  if (admin) {
+    console.log(`[DigiVault] bcrypt compare result: ${bcrypt.compareSync(password, admin.password_hash)}`);
+  }
   if (!admin || !bcrypt.compareSync(password, admin.password_hash)) {
     return res.redirect('/admin/login?error=1');
   }
