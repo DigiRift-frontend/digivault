@@ -307,12 +307,11 @@ module.exports = function layout(title, bodyHtml, { includeNav = false, navType 
 <body>
 ${navHtml}
 ${bodyHtml}
-${includeNav && navType === 'client' ? `
 <footer class="powered-footer">
   <img src="/public/digirift-logo-blue.png" alt="DigiRift"> Powered by <a href="https://digirift.com" target="_blank" rel="noopener">DigiRift GmbH</a>
   &nbsp;&middot;&nbsp;
-  <a href="https://inquiry.digirift.com" target="_blank" rel="noopener">Eigenes Portal anfragen</a>
-</footer>` : ''}
+  <a href="mailto:kamil@digirift.com">kamil@digirift.com</a>
+</footer>
 </body>
 </html>`;
 };
