@@ -222,13 +222,9 @@ app.get('/admin/login', (req, res) => {
   res.send(adminLoginPage(req.query.error === '1' ? 'E-Mail oder Passwort falsch.' : '', res.locals.csrfToken));
 });
 
-app.post('/admin/login', verifyCsrf, (req, res) => {
+app.post('/admin/login', loginLimiter, verifyCsrf, (req, res) => {
   const { email, password } = req.body;
   const admin = db.getAdmin(email);
-  console.log(`[DigiVault] Admin login attempt: email="${email}", admin_found=${!!admin}, password_length=${password ? password.length : 0}, password_first4="${password ? password.substring(0,4) : ''}", password_last4="${password ? password.substring(password.length-4) : ''}"`);
-  if (admin) {
-    console.log(`[DigiVault] bcrypt compare result: ${bcrypt.compareSync(password, admin.password_hash)}`);
-  }
   if (!admin || !bcrypt.compareSync(password, admin.password_hash)) {
     return res.redirect('/admin/login?error=1');
   }
