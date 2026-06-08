@@ -326,12 +326,12 @@ module.exports = function layout(title, bodyHtml, { includeNav = false, navType 
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 1rem 1.5rem;
+      padding: 1.25rem 1.5rem;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      flex-wrap: wrap;
+      text-align: center;
+      gap: 0.75rem;
     }
     .footer-cta p {
       font-size: 0.85rem;
