@@ -4,3 +4,4 @@ uploads/
 .env
 *.db
 *.db-journal
+DOKU-LOKAL.md

@@ -1,4 +1,4 @@
-# DigiVault - Dokumentation fuer Claude Sessions
+# DigiVault - Dokumentation
 
 ## Was ist DigiVault?
 
@@ -14,21 +14,12 @@ DigiVault ist eine Multi-Tenant HTML-Datei-Sharing-Plattform von DigiRift. Admin
 
 ## API-Zugang
 
-**API Token (Bearer Token):**
-```
-fed0f9eef7ecffee81e73cd39886424b8872dedf688c7e735abc918b1437fba4
-```
+API Token und Zugangsdaten befinden sich in der lokalen Datei `DOKU-LOKAL.md` (nicht im Repo enthalten).
 
 Alle API-Requests benoetigen den Header:
 ```
-Authorization: Bearer fed0f9eef7ecffee81e73cd39886424b8872dedf688c7e735abc918b1437fba4
+Authorization: Bearer <API_TOKEN>
 ```
-
-## Admin-Zugang
-
-- **Email:** admin@digirift.de
-- **Passwort:** Wird ueber die Umgebungsvariable ADMIN_PASSWORD gesetzt
-- **Login-URL:** https://vault.wirbauensoftware.de/admin/login
 
 ## Technischer Stack
 
@@ -63,37 +54,32 @@ digivault/
 ## Datenbank-Schema
 
 ```sql
--- Admin-Account (ein einziger Admin)
 CREATE TABLE admin (
   id INTEGER PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL
 );
 
--- Kunden (jeder bekommt Login-Daten)
 CREATE TABLE clients (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,           -- Anzeigename (z.B. "UK Aachen")
-  slug TEXT UNIQUE NOT NULL,    -- URL-sicherer Identifier
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
   username TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
-  password_plain TEXT,          -- Wird nicht mehr gespeichert (Security)
   created_at TEXT DEFAULT (datetime('now'))
 );
 
--- HTML-Dateien, Kunden zugewiesen
 CREATE TABLE files (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   client_id INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
-  title TEXT NOT NULL,          -- Anzeige-Titel
-  filename TEXT NOT NULL,       -- Gespeicherter Dateiname auf Disk
-  original_name TEXT,           -- Original Upload-Dateiname
+  title TEXT NOT NULL,
+  filename TEXT NOT NULL,
+  original_name TEXT,
   description TEXT,
-  is_new INTEGER NOT NULL DEFAULT 1,  -- 1 = Neu/Ungelesen, 0 = Gelesen
+  is_new INTEGER NOT NULL DEFAULT 1,
   created_at TEXT DEFAULT (datetime('now'))
 );
 
--- API Tokens fuer programmatischen Zugriff
 CREATE TABLE api_tokens (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   token TEXT UNIQUE NOT NULL,
@@ -106,124 +92,50 @@ CREATE TABLE api_tokens (
 
 Basis-URL: `https://vault.wirbauensoftware.de`
 
-### Kunden auflisten
-```bash
-curl -H "Authorization: Bearer fed0f9eef7ecffee81e73cd39886424b8872dedf688c7e735abc918b1437fba4" \
-  https://vault.wirbauensoftware.de/api/clients
-```
+| Methode | Pfad | Beschreibung |
+|---------|------|-------------|
+| GET | `/api/clients` | Alle Kunden auflisten |
+| POST | `/api/clients` | Neuen Kunden anlegen (name, slug, username, password) |
+| DELETE | `/api/clients/:id` | Kunden loeschen |
+| GET | `/api/clients/:id/files` | Dateien eines Kunden auflisten |
+| POST | `/api/clients/:id/files` | HTML-Datei hochladen (multipart oder base64 JSON) |
+| DELETE | `/api/files/:id` | Datei loeschen |
 
-Response:
-```json
-{
-  "clients": [
-    { "id": 1, "name": "UK Aachen", "slug": "uk-aachen", "username": "ukaachen", "created_at": "..." }
-  ]
-}
-```
-
-### Neuen Kunden anlegen
+### Kunden anlegen
 ```bash
 curl -X POST \
-  -H "Authorization: Bearer fed0f9eef7ecffee81e73cd39886424b8872dedf688c7e735abc918b1437fba4" \
+  -H "Authorization: Bearer <API_TOKEN>" \
   -H "Content-Type: application/json" \
   -d '{"name": "Firmenname", "slug": "firmen-slug", "username": "benutzername", "password": "kundenpasswort"}' \
   https://vault.wirbauensoftware.de/api/clients
 ```
 
-- `slug` darf nur Kleinbuchstaben, Zahlen und Bindestriche enthalten
-- `username` muss eindeutig sein
-
-### Kunden loeschen
-```bash
-curl -X DELETE \
-  -H "Authorization: Bearer fed0f9eef7ecffee81e73cd39886424b8872dedf688c7e735abc918b1437fba4" \
-  https://vault.wirbauensoftware.de/api/clients/{id}
-```
-
-### Dateien eines Kunden auflisten
-```bash
-curl -H "Authorization: Bearer fed0f9eef7ecffee81e73cd39886424b8872dedf688c7e735abc918b1437fba4" \
-  https://vault.wirbauensoftware.de/api/clients/{id}/files
-```
-
 ### HTML-Datei hochladen (JSON mit Base64)
 ```bash
 curl -X POST \
-  -H "Authorization: Bearer fed0f9eef7ecffee81e73cd39886424b8872dedf688c7e735abc918b1437fba4" \
+  -H "Authorization: Bearer <API_TOKEN>" \
   -H "Content-Type: application/json" \
-  -d '{
-    "title": "Dokument-Titel",
-    "filename": "dokument.html",
-    "content": "<base64-encoded-html-content>",
-    "description": "Optionale Beschreibung"
-  }' \
+  -d '{"title": "Titel", "filename": "doc.html", "content": "<base64>", "description": "Optional"}' \
   https://vault.wirbauensoftware.de/api/clients/{id}/files
-```
-
-Der `content`-Wert muss Base64-encoded sein. Beispiel zum Encoden:
-```bash
-base64 -i datei.html
-```
-
-Oder in Node.js:
-```javascript
-const content = Buffer.from(htmlString).toString('base64');
 ```
 
 ### HTML-Datei hochladen (Multipart)
 ```bash
 curl -X POST \
-  -H "Authorization: Bearer fed0f9eef7ecffee81e73cd39886424b8872dedf688c7e735abc918b1437fba4" \
+  -H "Authorization: Bearer <API_TOKEN>" \
   -F "file=@dokument.html" \
-  -F "title=Dokument-Titel" \
-  -F "description=Optionale Beschreibung" \
+  -F "title=Titel" \
+  -F "description=Optional" \
   https://vault.wirbauensoftware.de/api/clients/{id}/files
-```
-
-### Datei loeschen
-```bash
-curl -X DELETE \
-  -H "Authorization: Bearer fed0f9eef7ecffee81e73cd39886424b8872dedf688c7e735abc918b1437fba4" \
-  https://vault.wirbauensoftware.de/api/files/{id}
 ```
 
 ## Features
 
 - **Neu-Markierung:** Hochgeladene Dokumente werden automatisch als "Neu" markiert und oben angezeigt
-- **Gelesen/Ungelesen:** Kunden koennen Dokumente als gelesen/ungelesen markieren. Dokumente werden automatisch als gelesen markiert wenn sie geoeffnet werden
+- **Gelesen/Ungelesen:** Kunden koennen Dokumente als gelesen/ungelesen markieren
 - **Admin-Viewer:** Admin kann Dokumente direkt im Browser oeffnen
 - **CSRF-Schutz:** Alle Formulare sind CSRF-geschuetzt
 - **Rate Limiting:** Login-Routen haben Rate Limiting (10 Versuche / 15 Min)
-
-## Coolify Deployment Details
-
-- **Coolify URL:** https://admin.wirbauensoftware.de
-- **Coolify API Token:** 38|yhjyhCj5O470PyWm5NopybGdcRnePakfvcBRgZHO61658c0c
-- **App UUID:** r13yxkjes93li8lticahlj39
-- **Projekt UUID:** ljmumtoa3j07dh8ug72jujqx
-- **Environment UUID:** p9u9km40dlrgt2vsjkb19fur
-- **Server UUID:** w8kw4w0swkk0o4o88kgckw48
-
-### Deployment ausloesen
-```bash
-curl -X POST \
-  -H "Authorization: Bearer 38|yhjyhCj5O470PyWm5NopybGdcRnePakfvcBRgZHO61658c0c" \
-  -H "Content-Type: application/json" \
-  -d '{"uuid": "r13yxkjes93li8lticahlj39"}' \
-  https://admin.wirbauensoftware.de/api/v1/deploy
-```
-
-### Deployment-Status pruefen
-```bash
-curl -H "Authorization: Bearer 38|yhjyhCj5O470PyWm5NopybGdcRnePakfvcBRgZHO61658c0c" \
-  https://admin.wirbauensoftware.de/api/v1/deployments/{deployment_uuid}
-```
-
-### Container-Logs abrufen
-```bash
-curl -H "Authorization: Bearer 38|yhjyhCj5O470PyWm5NopybGdcRnePakfvcBRgZHO61658c0c" \
-  "https://admin.wirbauensoftware.de/api/v1/applications/r13yxkjes93li8lticahlj39/logs?since=300"
-```
 
 ## Persistente Volumes
 
