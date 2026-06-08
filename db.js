@@ -70,11 +70,14 @@ if (!adminPassword) {
   process.exit(1);
 }
 
+const adminHash = bcrypt.hashSync(adminPassword, 10);
 const existingAdmin = db.prepare('SELECT id FROM admin WHERE email = ?').get(adminEmail);
 if (!existingAdmin) {
-  const hash = bcrypt.hashSync(adminPassword, 10);
-  db.prepare('INSERT INTO admin (email, password_hash) VALUES (?, ?)').run(adminEmail, hash);
+  db.prepare('INSERT INTO admin (email, password_hash) VALUES (?, ?)').run(adminEmail, adminHash);
   console.log(`[DigiVault] Admin account created: ${adminEmail}`);
+} else {
+  // Always update password from env var so changes take effect after redeploy
+  db.prepare('UPDATE admin SET password_hash = ? WHERE email = ?').run(adminHash, adminEmail);
 }
 
 // --- Seed initial API token ---
