@@ -1,14 +1,20 @@
 module.exports = function layout(title, bodyHtml, { includeNav = false, navType = 'client', clientName = '' } = {}) {
   let navHtml = '';
 
+  const lockSvg = '<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>';
+
   if (includeNav && navType === 'admin') {
     navHtml = `
     <header class="top-bar">
       <div class="top-bar-inner">
-        <a href="/admin" class="top-bar-brand">
+        <a href="/admin" class="top-bar-logo">
           <img src="/public/digirift-logo-blue.png" alt="DigiRift" style="height:26px;width:auto;">
-          <span>DigiVault <small>Admin</small></span>
         </a>
+        <div class="top-bar-center">
+          <span class="top-bar-lock">${lockSvg}</span>
+          <span class="top-bar-title">DigiVault</span>
+          <span class="top-bar-subtitle">Admin</span>
+        </div>
         <nav class="top-bar-nav">
           <a href="/admin">Dashboard</a>
           <a href="/admin/logout" class="btn-logout">Abmelden</a>
@@ -19,10 +25,13 @@ module.exports = function layout(title, bodyHtml, { includeNav = false, navType 
     navHtml = `
     <header class="top-bar">
       <div class="top-bar-inner">
-        <a href="/" class="top-bar-brand">
+        <a href="/" class="top-bar-logo">
           <img src="/public/digirift-logo-blue.png" alt="DigiRift" style="height:26px;width:auto;">
-          <span>DigiVault${clientName ? ` <small>${esc(clientName)}</small>` : ''}</span>
         </a>
+        <div class="top-bar-center">
+          <span class="top-bar-lock">${lockSvg}</span>
+          <span class="top-bar-title">DigiVault</span>
+        </div>
         <nav class="top-bar-nav">
           <a href="/">Dokumente</a>
           <a href="/logout" class="btn-logout">Abmelden</a>
@@ -61,6 +70,8 @@ module.exports = function layout(title, bodyHtml, { includeNav = false, navType 
       background: var(--bg-secondary);
       color: var(--text);
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
     h1, h2, h3, h4 { font-family: 'Poppins', sans-serif; }
 
@@ -81,26 +92,52 @@ module.exports = function layout(title, bodyHtml, { includeNav = false, navType 
       align-items: center;
       justify-content: space-between;
     }
-    .top-bar-brand {
+    .top-bar-logo {
+      text-decoration: none;
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      text-decoration: none;
+      flex-shrink: 0;
+      min-width: 120px;
+    }
+    .top-bar-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .top-bar-lock {
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
+      background: #EFF6FF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: var(--primary);
+      flex-shrink: 0;
+    }
+    .top-bar-title {
       font-family: 'Poppins', sans-serif;
       font-weight: 700;
-      font-size: 1.15rem;
+      font-size: 1.1rem;
+      color: var(--primary);
+      letter-spacing: -0.3px;
     }
-    .top-bar-brand small {
+    .top-bar-subtitle {
       font-weight: 500;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: var(--text-secondary);
-      margin-left: 0.25rem;
+      margin-left: 0.1rem;
     }
     .top-bar-nav {
       display: flex;
       align-items: center;
       gap: 1.5rem;
+      flex-shrink: 0;
+      min-width: 120px;
+      justify-content: flex-end;
     }
     .top-bar-nav a {
       text-decoration: none;
@@ -120,6 +157,11 @@ module.exports = function layout(title, bodyHtml, { includeNav = false, navType 
     .btn-logout:hover {
       border-color: var(--danger) !important;
       color: var(--danger) !important;
+    }
+
+    /* Main content area */
+    .page-content {
+      flex: 1;
     }
 
     /* Container */
@@ -283,6 +325,7 @@ module.exports = function layout(title, bodyHtml, { includeNav = false, navType 
       padding: 2rem 1rem 1.5rem;
       font-size: 0.8rem;
       color: var(--text-secondary);
+      flex-shrink: 0;
     }
     .powered-footer a {
       color: var(--accent);
@@ -301,12 +344,19 @@ module.exports = function layout(title, bodyHtml, { includeNav = false, navType 
     @media (max-width: 768px) {
       .container { padding: 1rem; }
       .top-bar-inner { padding: 0 1rem; }
+      .top-bar-center { position: static; transform: none; }
+      .top-bar-inner { gap: 0.5rem; }
+      .top-bar-logo img { height: 20px; }
+      .top-bar-title { font-size: 0.95rem; }
+      .top-bar-nav { gap: 0.75rem; min-width: auto; }
     }
   </style>
 </head>
 <body>
 ${navHtml}
+<div class="page-content">
 ${bodyHtml}
+</div>
 <footer class="powered-footer">
   <img src="/public/digirift-logo-blue.png" alt="DigiRift"> Powered by <a href="https://digirift.com" target="_blank" rel="noopener">DigiRift GmbH</a>
   &nbsp;&middot;&nbsp;
