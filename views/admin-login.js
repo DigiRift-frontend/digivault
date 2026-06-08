@@ -64,6 +64,33 @@ module.exports = function adminLoginPage(error = '') {
       height: 32px;
       width: auto;
     }
+
+    .product-name {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-top: 3rem;
+      margin-bottom: 1.5rem;
+      animation: fadeIn 0.65s ease-out;
+    }
+    .product-name .lock-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .product-name span {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      font-size: 1.8rem;
+      letter-spacing: -0.5px;
+    }
     .login-left-content {
       flex: 1;
       display: flex;
@@ -251,6 +278,12 @@ module.exports = function adminLoginPage(error = '') {
     </div>
 
     <div class="login-left-content">
+      <div class="product-name">
+        <span class="lock-icon">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        </span>
+        <span>DigiVault</span>
+      </div>
       <h1>Verwaltungszugang</h1>
       <p class="tagline">Verwalten Sie Kunden, Dokumente und Zugriffsrechte &uuml;ber das Admin-Panel.</p>
       <ul class="feature-list">
