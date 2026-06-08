@@ -341,6 +341,7 @@ module.exports = function layout(title, bodyHtml, { includeNav = false, navType 
     .footer-cta-link {
       display: inline-flex;
       align-items: center;
+      align-self: center;
       gap: 0.4rem;
       background: var(--primary);
       color: #fff !important;
