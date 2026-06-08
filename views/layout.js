@@ -319,10 +319,45 @@ module.exports = function layout(title, bodyHtml, { includeNav = false, navType 
     .fade-in { animation: fadeIn 0.5s ease-out; }
     .slide-in { animation: slideIn 0.5s ease-out; }
 
+    /* Footer CTA */
+    .footer-cta {
+      max-width: 600px;
+      margin: 0 auto 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .footer-cta p {
+      font-size: 0.85rem;
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .footer-cta-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--primary);
+      color: #fff !important;
+      text-decoration: none !important;
+      padding: 0.45rem 1rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+    .footer-cta-link:hover { background: var(--primary-light); }
+
     /* Powered-by footer */
     .powered-footer {
       text-align: center;
-      padding: 2rem 1rem 1.5rem;
+      padding: 1.5rem 1rem 1.5rem;
       font-size: 0.8rem;
       color: var(--text-secondary);
       flex-shrink: 0;
@@ -358,6 +393,13 @@ ${navHtml}
 ${bodyHtml}
 </div>
 <footer class="powered-footer">
+  <div class="footer-cta">
+    <p>Gef&auml;llt Ihnen dieses Portal? Wir entwickeln individuelle Softwarel&ouml;sungen f&uuml;r Ihr Unternehmen.</p>
+    <a href="https://digirift.com" target="_blank" rel="noopener" class="footer-cta-link">
+      Jetzt unverbindlich anfragen
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+    </a>
+  </div>
   <img src="/public/digirift-logo-blue.png" alt="DigiRift"> Powered by <a href="https://digirift.com" target="_blank" rel="noopener">DigiRift GmbH</a>
   &nbsp;&middot;&nbsp;
   <a href="https://digirift.de" target="_blank" rel="noopener">digirift.de</a>
