@@ -62,7 +62,7 @@ try {
 
 // --- Seed admin account ---
 
-const adminEmail = 'admin@digirift.de';
+const adminEmail = process.env.ADMIN_EMAIL || 'admin@digirift.de';
 const adminPassword = process.env.ADMIN_PASSWORD;
 
 if (!adminPassword) {
