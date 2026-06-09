@@ -210,6 +210,7 @@ app.get('/raw/:fileId', requireClient, (req, res) => {
   const client = db.getClientById(file.client_id);
   const filePath = path.join(UPLOADS_DIR, client.slug, file.filename);
   if (!fs.existsSync(filePath)) return res.status(404).send('Datei nicht gefunden');
+  res.removeHeader('Content-Security-Policy');
   res.sendFile(filePath);
 });
 
@@ -299,6 +300,7 @@ app.get('/admin/raw/:fileId', requireAdmin, (req, res) => {
   const client = db.getClientById(file.client_id);
   const filePath = path.join(UPLOADS_DIR, client.slug, file.filename);
   if (!fs.existsSync(filePath)) return res.status(404).send('Datei nicht gefunden');
+  res.removeHeader('Content-Security-Policy');
   res.sendFile(filePath);
 });
 
